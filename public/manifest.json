@@ -1,0 +1,18 @@
+{
+  "name": "Nexus Trading Dashboard",
+  "short_name": "Nexus",
+  "description": "Plataforma de Operaciones Logísticas Nexus",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/6073/6073873.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05070a",
+  "theme_color": "#2563eb",
+  "orientation": "portrait"
+}
