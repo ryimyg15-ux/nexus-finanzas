@@ -1,3 +1,5 @@
+import type {NextConfig} from "next";
+// @ts-ignore
 import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
@@ -6,12 +8,19 @@ const withPWA = withPWAInit({
     aggressiveFrontEndNavCaching: true,
     reloadOnOnline: true,
     swMinify: true,
-    disable: false, // Cambia a true si quieres desactivarlo en desarrollo
+    disable: process.env.NODE_ENV === "development",
     workboxOptions: {
         disableDevLogs: true,
     },
 });
 
-export default withPWA({
-    // Tus otras configuraciones de Next.js aquí
-});
+const nextConfig: NextConfig = {
+    /* Configuración normal de Next.js */
+
+    // SOLUCIÓN AL ERROR: Forzamos el uso de Webpack para compatibilidad con PWA
+    webpack: (config: any) => {
+        return config;
+    },
+};
+
+export default withPWA(nextConfig);
