@@ -15,9 +15,14 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-    /* Configuración normal de Next.js */
+    // 1. Esto silencia el error de Next.js 16 al aceptar Turbopack explícitamente
+    experimental: {
+        turbopack: {
+            // Puedes dejarlo vacío o configurar reglas si fuera necesario
+        },
+    },
 
-    // SOLUCIÓN AL ERROR: Forzamos el uso de Webpack para compatibilidad con PWA
+    // 2. Mantenemos esto para que el plugin de PWA pueda inyectar su lógica
     webpack: (config: any) => {
         return config;
     },
