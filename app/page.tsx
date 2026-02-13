@@ -11,53 +11,56 @@ interface Operacion {
     tipo: 'Directa' | 'Inversa';
 }
 
-export default function NexusPersonalizadoV9() {
+interface Tarjeta {
+    id: string;
+    nombre: string;
+    saldoInicialCUP: number;
+}
+
+export default function NexusContabilidadV10() {
     const [tasa, setTasa] = useState<number>(90);
     const [monto, setMonto] = useState<string>("");
     const [tipo, setTipo] = useState<'Directa' | 'Inversa'>('Directa');
     const [operaciones, setOperaciones] = useState<Operacion[]>([]);
+    const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
 
-    // ESTADO PARA LAS TARJETAS PERSONALIZADAS
-    const [misTarjetas, setMisTarjetas] = useState<string[]>([]);
-    const [nuevaTarjeta, setNuevaTarjeta] = useState("");
+    // Estados para edición y creación
+    const [nuevaT, setNuevaT] = useState("");
+    const [saldoInitT, setSaldoInitT] = useState<string>("0");
     const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState("");
-
+    const [editandoOp, setEditandoOp] = useState<number | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
 
-    // Cargar todo al iniciar
     useEffect(() => {
-        const opsGuardadas = localStorage.getItem('nexus_v9_ops');
-        const cardsGuardadas = localStorage.getItem('nexus_v9_cards');
-
-        if (opsGuardadas) setOperaciones(JSON.parse(opsGuardadas));
-        if (cardsGuardadas) {
-            const cards = JSON.parse(cardsGuardadas);
-            setMisTarjetas(cards);
-            if (cards.length > 0) setTarjetaSeleccionada(cards[0]);
+        const ops = localStorage.getItem('nexus_v10_ops');
+        const cards = localStorage.getItem('nexus_v10_cards');
+        if (ops) setOperaciones(JSON.parse(ops));
+        if (cards) {
+            const parsedCards = JSON.parse(cards);
+            setTarjetas(parsedCards);
+            if (parsedCards.length > 0) setTarjetaSeleccionada(parsedCards[0].nombre);
         }
         setIsLoaded(true);
     }, []);
 
-    // Guardar cambios automáticamente
     useEffect(() => {
         if (isLoaded) {
-            localStorage.setItem('nexus_v9_ops', JSON.stringify(operaciones));
-            localStorage.setItem('nexus_v9_cards', JSON.stringify(misTarjetas));
+            localStorage.setItem('nexus_v10_ops', JSON.stringify(operaciones));
+            localStorage.setItem('nexus_v10_cards', JSON.stringify(tarjetas));
         }
-    }, [operaciones, misTarjetas, isLoaded]);
+    }, [operaciones, tarjetas, isLoaded]);
 
     const agregarTarjeta = () => {
-        if (!nuevaTarjeta) return;
-        const listaActualizada = [...misTarjetas, nuevaTarjeta.toUpperCase()];
-        setMisTarjetas(listaActualizada);
-        setTarjetaSeleccionada(nuevaTarjeta.toUpperCase());
-        setNuevaTarjeta("");
-    };
-
-    const eliminarTarjeta = (nombre: string) => {
-        if (confirm(`¿Eliminar la cuenta ${nombre}?`)) {
-            setMisTarjetas(misTarjetas.filter(t => t !== nombre));
-        }
+        if (!nuevaT) return;
+        const n: Tarjeta = {
+            id: Date.now().toString(),
+            nombre: nuevaT.toUpperCase(),
+            saldoInicialCUP: parseFloat(saldoInitT) || 0
+        };
+        setTarjetas([...tarjetas, n]);
+        if (!tarjetaSeleccionada) setTarjetaSeleccionada(n.nombre);
+        setNuevaT("");
+        setSaldoInitT("0");
     };
 
     const registrarOperacion = () => {
@@ -68,32 +71,36 @@ export default function NexusPersonalizadoV9() {
         const nueva: Operacion = {
             id: Date.now(),
             dia: new Date().toLocaleDateString('es-ES', {day: '2-digit', month: '2-digit'}),
-            montoEntrada: m,
-            tasa: tasa,
-            montoSalida: salida,
-            metodo: tarjetaSeleccionada,
-            tipo: tipo
+            montoEntrada: m, tasa, montoSalida: salida,
+            metodo: tarjetaSeleccionada, tipo
         };
         setOperaciones([nueva, ...operaciones]);
         setMonto("");
     };
 
-    const obtenerResumen = (nombreT: string) => {
-        const ops = operaciones.filter(o => o.metodo === nombreT);
-        let r = 0, cup = 0;
-        ops.forEach(o => {
-            if (o.tipo === 'Directa') {
-                r += o.montoEntrada;
-                cup += o.montoSalida;
-            } else {
-                cup += o.montoEntrada;
-                r += o.montoSalida;
-            }
-        });
-        return {r, cup};
+    const eliminarOp = (id: number) => {
+        if (confirm("¿Eliminar este registro?")) setOperaciones(operaciones.filter(o => o.id !== id));
     };
 
-    if (!isLoaded) return <div style={{backgroundColor: '#0b141a', minHeight: '100vh'}}/>;
+    // CÁLCULO DE SALDO REAL POR TARJETA
+    const calcularSaldoCUP = (nombreT: string) => {
+        const t = tarjetas.find(tar => tar.nombre === nombreT);
+        if (!t) return 0;
+
+        const movs = operaciones.filter(o => o.metodo === nombreT);
+        let balance = t.saldoInicialCUP;
+
+        movs.forEach(o => {
+            if (o.tipo === 'Directa') {
+                balance -= o.montoSalida; // Pagaste pesos en Cuba
+            } else {
+                balance += o.montoEntrada; // Recibiste pesos en Cuba
+            }
+        });
+        return balance;
+    };
+
+    if (!isLoaded) return <div className="bg-[#0b141a] min-h-screen"/>;
 
     return (
         <main style={{
@@ -104,45 +111,29 @@ export default function NexusPersonalizadoV9() {
             border: '8px solid #1d4ed8'
         }}>
 
-            {/* HEADER */}
-            <header style={{
-                backgroundColor: '#121f27',
-                padding: '15px',
-                borderRadius: '20px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '20px'
-            }}>
-                <h1 style={{fontSize: '20px', fontWeight: '900', fontStyle: 'italic'}}>NEXUS<span
-                    style={{color: '#dc2626'}}>PRO</span></h1>
-                <div style={{
-                    backgroundColor: 'white',
-                    padding: '5px 10px',
-                    borderRadius: '8px',
-                    color: 'black',
-                    fontWeight: 'bold'
-                }}>
-                    TASA: <input type="number" value={tasa} onChange={(e) => setTasa(parseFloat(e.target.value))}
-                                 style={{width: '40px', border: 'none', fontWeight: '900', outline: 'none'}}/>
-                </div>
-            </header>
-
-            {/* GESTIÓN DE TARJETAS */}
+            {/* SECCIÓN 1: GESTIÓN DE TARJETAS Y SALDOS */}
             <section style={{
-                backgroundColor: '#1c2c35',
-                padding: '15px',
-                borderRadius: '20px',
+                backgroundColor: '#121f27',
+                padding: '20px',
+                borderRadius: '25px',
                 marginBottom: '20px',
-                border: '1px dashed #374151'
+                border: '1px solid #374151'
             }}>
-                <p style={{fontSize: '10px', fontWeight: 'bold', color: '#facc15', marginBottom: '10px'}}>+ AGREGAR
-                    NUEVA CUENTA/TARJETA</p>
-                <div style={{display: 'flex', gap: '10px'}}>
-                    <input value={nuevaTarjeta} onChange={(e) => setNuevaTarjeta(e.target.value)}
-                           placeholder="NOMBRE (EJ. VISA LUIS)" style={{
-                        flex: 1,
-                        backgroundColor: '#0b141a',
+                <h2 style={{fontSize: '10px', color: '#facc15', marginBottom: '15px', fontWeight: 'bold'}}>MIS TARJETAS
+                    Y FONDOS</h2>
+
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '8px', marginBottom: '15px'}}>
+                    <input placeholder="NOMBRE" value={nuevaT} onChange={e => setNuevaT(e.target.value)} style={{
+                        backgroundColor: '#1c2c35',
+                        border: 'none',
+                        padding: '10px',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '12px'
+                    }}/>
+                    <input placeholder="SALDO INICIAL $" type="number" value={saldoInitT}
+                           onChange={e => setSaldoInitT(e.target.value)} style={{
+                        backgroundColor: '#1c2c35',
                         border: 'none',
                         padding: '10px',
                         borderRadius: '8px',
@@ -159,63 +150,92 @@ export default function NexusPersonalizadoV9() {
                     }}>+
                     </button>
                 </div>
-                <div style={{display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '10px'}}>
-                    {misTarjetas.map(t => (
-                        <span key={t} onClick={() => eliminarTarjeta(t)} style={{
-                            fontSize: '9px',
-                            backgroundColor: '#374151',
-                            padding: '4px 8px',
-                            borderRadius: '5px',
-                            cursor: 'pointer'
+
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
+                    {tarjetas.map(t => (
+                        <div key={t.id} style={{
+                            backgroundColor: '#0b141a',
+                            padding: '10px',
+                            borderRadius: '12px',
+                            border: '1px solid #1d4ed8'
                         }}>
-              {t} ✕
-            </span>
+                            <p style={{fontSize: '9px', color: '#9ca3af'}}>{t.nombre}</p>
+                            <p style={{
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                color: '#3b82f6'
+                            }}>$ {calcularSaldoCUP(t.nombre).toLocaleString()}</p>
+                            <button onClick={() => setTarjetas(tarjetas.filter(tar => tar.id !== t.id))} style={{
+                                color: '#dc2626',
+                                fontSize: '8px',
+                                background: 'none',
+                                border: 'none',
+                                marginTop: '5px',
+                                cursor: 'pointer'
+                            }}>ELIMINAR CUENTA
+                            </button>
+                        </div>
                     ))}
                 </div>
             </section>
 
-            {/* REGISTRO DE OPERACIÓN */}
+            {/* SECCIÓN 2: REGISTRO DE OPERACIONES */}
             <section style={{backgroundColor: '#121f27', padding: '20px', borderRadius: '25px', marginBottom: '20px'}}>
                 <div style={{display: 'flex', gap: '8px', marginBottom: '15px'}}>
                     <button onClick={() => setTipo('Directa')} style={{
                         flex: 1,
-                        padding: '10px',
-                        borderRadius: '8px',
-                        fontSize: '10px',
+                        padding: '12px',
+                        borderRadius: '10px',
                         fontWeight: 'bold',
                         backgroundColor: tipo === 'Directa' ? '#1d4ed8' : '#1c2c35',
                         border: 'none',
                         color: 'white'
-                    }}>DIRECTA
+                    }}>PAGAR EN CUBA (R$ ➔ $)
                     </button>
                     <button onClick={() => setTipo('Inversa')} style={{
                         flex: 1,
-                        padding: '10px',
-                        borderRadius: '8px',
-                        fontSize: '10px',
+                        padding: '12px',
+                        borderRadius: '10px',
                         fontWeight: 'bold',
                         backgroundColor: tipo === 'Inversa' ? '#a21caf' : '#1c2c35',
                         border: 'none',
                         color: 'white'
-                    }}>INVERSA
+                    }}>RECOGER EN CUBA ($ ➔ R$)
                     </button>
                 </div>
 
-                <select value={tarjetaSeleccionada} onChange={(e) => setTarjetaSeleccionada(e.target.value)} style={{
-                    width: '100%',
-                    padding: '12px',
-                    borderRadius: '10px',
-                    backgroundColor: '#1c2c35',
-                    color: 'white',
-                    border: 'none',
-                    marginBottom: '10px'
-                }}>
-                    <option value="">-- SELECCIONA CUENTA --</option>
-                    {misTarjetas.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
+                <div style={{display: 'flex', gap: '8px', marginBottom: '10px'}}>
+                    <select value={tarjetaSeleccionada} onChange={e => setTarjetaSeleccionada(e.target.value)} style={{
+                        flex: 1,
+                        backgroundColor: '#1c2c35',
+                        color: 'white',
+                        padding: '12px',
+                        borderRadius: '10px',
+                        border: 'none'
+                    }}>
+                        {tarjetas.map(t => <option key={t.id} value={t.nombre}>{t.nombre}</option>)}
+                    </select>
+                    <div style={{
+                        backgroundColor: 'white',
+                        padding: '10px',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center'
+                    }}>
+                        <span style={{color: 'black', fontWeight: 'bold', fontSize: '10px'}}>TASA:</span>
+                        <input type="number" value={tasa} onChange={e => setTasa(parseFloat(e.target.value))} style={{
+                            width: '40px',
+                            color: 'black',
+                            fontWeight: '900',
+                            border: 'none',
+                            outline: 'none',
+                            textAlign: 'center'
+                        }}/>
+                    </div>
+                </div>
 
-                <input type="number" placeholder={tipo === 'Directa' ? "REALES (R$)" : "PESOS (CUP)"} value={monto}
-                       onChange={(e) => setMonto(e.target.value)} style={{
+                <input type="number" placeholder={tipo === 'Directa' ? "CANTIDAD REALES" : "CANTIDAD PESOS"}
+                       value={monto} onChange={e => setMonto(e.target.value)} style={{
                     width: '100%',
                     boxSizing: 'border-box',
                     backgroundColor: '#1c2c35',
@@ -224,42 +244,70 @@ export default function NexusPersonalizadoV9() {
                     border: 'none',
                     color: tipo === 'Directa' ? '#4ade80' : '#f472b6',
                     fontWeight: 'bold',
-                    fontSize: '22px',
+                    fontSize: '24px',
                     textAlign: 'center',
-                    marginBottom: '10px'
+                    marginBottom: '15px'
                 }}/>
 
                 <button onClick={registrarOperacion} style={{
                     width: '100%',
                     backgroundColor: 'white',
                     color: 'black',
-                    padding: '15px',
+                    padding: '18px',
                     borderRadius: '50px',
                     fontWeight: '900',
+                    cursor: 'pointer',
                     border: 'none'
-                }}>GUARDAR OPERACIÓN
-                </button>
+                }}>GUARDAR EN {tarjetaSeleccionada}</button>
             </section>
 
-            {/* RESUMEN POR CUENTA */}
-            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px'}}>
-                {misTarjetas.map(t => {
-                    const {r, cup} = obtenerResumen(t);
-                    if (r === 0 && cup === 0) return null;
-                    return (
-                        <div key={t} style={{
-                            backgroundColor: '#0f171d',
-                            padding: '12px',
-                            borderRadius: '15px',
-                            borderLeft: '3px solid #facc15'
-                        }}>
-                            <p style={{fontSize: '9px', fontWeight: 'bold', marginBottom: '4px'}}>{t}</p>
-                            <p style={{fontSize: '11px', color: '#4ade80'}}>R$ {r.toFixed(2)}</p>
-                            <p style={{fontSize: '11px', color: '#3b82f6'}}>$ {cup.toLocaleString()}</p>
-                        </div>
-                    );
-                })}
-            </div>
+            {/* SECCIÓN 3: HISTORIAL CON EDICIÓN */}
+            <section style={{backgroundColor: '#121f27', borderRadius: '20px', overflow: 'hidden'}}>
+                <table style={{width: '100%', borderCollapse: 'collapse'}}>
+                    <thead style={{backgroundColor: '#0f171d', fontSize: '9px', color: '#9ca3af'}}>
+                    <tr>
+                        <th style={{padding: '12px', textAlign: 'left'}}>DÍA / CUENTA</th>
+                        <th style={{padding: '12px', textAlign: 'right'}}>VALORES</th>
+                        <th style={{padding: '12px', textAlign: 'center'}}>ACCIÓN</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {operaciones.map(op => (
+                        <tr key={op.id} style={{borderBottom: '1px solid #1f2937'}}>
+                            <td style={{padding: '12px'}}>
+                                <p style={{fontSize: '10px', fontWeight: 'bold'}}>{op.metodo}</p>
+                                <p style={{
+                                    fontSize: '8px',
+                                    color: op.tipo === 'Inversa' ? '#f472b6' : '#3b82f6'
+                                }}>{op.tipo} - {op.dia}</p>
+                            </td>
+                            <td style={{padding: '12px', textAlign: 'right'}}>
+                                <p style={{
+                                    fontSize: '11px',
+                                    color: '#4ade80',
+                                    fontWeight: 'bold'
+                                }}>R$ {op.tipo === 'Directa' ? op.montoEntrada : op.montoSalida.toFixed(2)}</p>
+                                <p style={{
+                                    fontSize: '11px',
+                                    color: '#3b82f6',
+                                    fontWeight: 'bold'
+                                }}>$ {op.tipo === 'Directa' ? op.montoSalida.toLocaleString() : op.montoEntrada.toLocaleString()}</p>
+                            </td>
+                            <td style={{textAlign: 'center'}}>
+                                <button onClick={() => eliminarOp(op.id)} style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#dc2626',
+                                    fontSize: '14px',
+                                    cursor: 'pointer'
+                                }}>🗑️
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            </section>
 
         </main>
     );
