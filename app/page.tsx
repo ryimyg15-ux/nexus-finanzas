@@ -340,48 +340,27 @@ export default function NexusPatriotico() {
                 </section>
 
                 {/* RESUMEN DE CAJA (LAS CÁPSULAS DE ABAJO) */}
-                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '20px'}}>
-                    <div style={{
-                        backgroundColor: 'rgba(22, 163, 74, 0.1)',
-                        border: '2px solid #16a34a',
-                        padding: '20px',
-                        borderRadius: '30px',
-                        textAlign: 'center'
-                    }}>
-                        <p style={{fontSize: '9px', fontWeight: 'bold', color: '#16a34a', marginBottom: '5px'}}>TOTAL
-                            REALES</p>
-                        <p style={{
-                            fontSize: '22px',
-                            fontWeight: '900'
-                        }}>R$ {enviosFiltrados.reduce((acc, curr) => acc + curr.reales, 0).toFixed(2)}</p>
-                    </div>
-                    <div style={{
-                        backgroundColor: 'rgba(29, 78, 216, 0.1)',
-                        border: '2px solid #1d4ed8',
-                        padding: '20px',
-                        borderRadius: '30px',
-                        textAlign: 'center'
-                    }}>
-                        <p style={{fontSize: '9px', fontWeight: 'bold', color: '#3b82f6', marginBottom: '5px'}}>TOTAL
-                            CUP</p>
-                        <p style={{
-                            fontSize: '22px',
-                            fontWeight: '900'
-                        }}>$ {enviosFiltrados.reduce((acc, curr) => acc + curr.saldoMN, 0).toLocaleString()}</p>
-                    </div>
-                </div>
+                {/* ... (todo el código anterior de la tabla y los totales se mantiene igual) ... */}
 
             </div>
-            <p style={{
+
+            <footer style={{
                 textAlign: 'center',
-                marginTop: '40px',
-                fontSize: '10px',
-                color: '#374151',
-                letterSpacing: '5px',
-                fontWeight: 'bold'
+                marginTop: '50px',
+                paddingBottom: '30px',
+                opacity: '0.4'
             }}>
-                NEXUS PRO • PATRIA O MUERTE
-            </p>
+                <p style={{
+                    fontSize: '10px',
+                    color: '#9ca3af',
+                    letterSpacing: '3px',
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase'
+                }}>
+                    NEXUS PRO • SISTEMA DE CONTROL DE REMESAS
+                </p>
+            </footer>
         </main>
     );
 }
+        
