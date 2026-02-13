@@ -23,13 +23,13 @@ export default function NexusPatriotico() {
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
-        const datos = localStorage.getItem('nexus_patria');
+        const datos = localStorage.getItem('nexus_final_v5');
         if (datos) setEnvios(JSON.parse(datos));
         setIsLoaded(true);
     }, []);
 
     useEffect(() => {
-        if (isLoaded) localStorage.setItem('nexus_patria', JSON.stringify(envios));
+        if (isLoaded) localStorage.setItem('nexus_final_v5', JSON.stringify(envios));
     }, [envios, isLoaded]);
 
     const registrar = () => {
@@ -54,76 +54,166 @@ export default function NexusPatriotico() {
         ? envios
         : envios.filter(e => e.tarjetaOrigen === filtroTarjeta || (filtroTarjeta === "Efectivo" && e.metodo === "Efectivo"));
 
-    if (!isLoaded) return <div className="bg-[#0b141a] min-h-screen"/>;
+    if (!isLoaded) return <div style={{backgroundColor: '#0b141a', minHeight: '100vh'}}/>;
 
     return (
-        <main className="min-h-screen bg-[#0b141a] text-white font-sans p-4 pb-10 border-[6px] border-blue-700">
+        <main style={{
+            backgroundColor: '#0b141a',
+            minHeight: '100vh',
+            color: 'white',
+            padding: '20px',
+            border: '8px solid #1d4ed8' // Azul Cuba
+        }}>
 
-            {/* HEADER PATRIÓTICO */}
-            <header
-                className="max-w-2xl mx-auto flex justify-between items-center mb-6 bg-[#121f27] p-6 rounded-3xl border-b-4 border-red-600 shadow-xl">
+            {/* HEADER ESTILO IMAGEN */}
+            <header style={{
+                backgroundColor: '#121f27',
+                padding: '25px',
+                borderRadius: '30px',
+                borderBottom: '5px solid #dc2626', // Rojo Cuba
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                maxWidth: '700px',
+                margin: '0 auto 30px auto',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
+            }}>
                 <div>
-                    <h1 className="text-3xl font-black italic tracking-tighter">
-                        NEXUS<span className="text-red-600">PRO</span>
+                    <h1 style={{fontSize: '28px', fontWeight: '900', fontStyle: 'italic', letterSpacing: '-1px'}}>
+                        NEXUS<span style={{color: '#dc2626'}}>PRO</span>
                     </h1>
-                    <div className="flex gap-2 mt-2">
-                        <div className="w-6 h-4 bg-blue-700 border border-white flex items-center justify-center"><span
-                            className="text-[6px] text-white">★</span></div>
-                        <div className="w-6 h-4 bg-green-600 border border-yellow-400"></div>
+                    <div style={{display: 'flex', gap: '8px', marginTop: '10px'}}>
+                        <div style={{
+                            width: '30px',
+                            height: '18px',
+                            backgroundColor: '#1d4ed8',
+                            border: '1px solid white',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            fontSize: '10px'
+                        }}>★
+                        </div>
+                        <div style={{
+                            width: '30px',
+                            height: '18px',
+                            backgroundColor: '#16a34a',
+                            border: '1px solid #facc15'
+                        }}></div>
                     </div>
                 </div>
-                <div className="text-right">
-                    <p className="text-xs font-bold text-yellow-400 uppercase">Tasa de Hoy</p>
-                    <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-lg mt-1">
-                        <span className="text-black font-bold text-sm underline">R$ 1 =</span>
+                <div style={{textAlign: 'right'}}>
+                    <p style={{fontSize: '10px', color: '#facc15', fontWeight: 'bold', textTransform: 'uppercase'}}>Tasa
+                        de Hoy</p>
+                    <div style={{
+                        backgroundColor: 'white',
+                        padding: '5px 15px',
+                        borderRadius: '10px',
+                        marginTop: '5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                    }}>
+                        <span style={{color: 'black', fontWeight: 'bold', fontSize: '12px'}}>R$ 1 =</span>
                         <input
                             type="number"
                             value={tasa}
                             onChange={(e) => setTasa(parseFloat(e.target.value))}
-                            className="bg-transparent text-black font-black text-xl outline-none w-12"
+                            style={{
+                                backgroundColor: 'transparent',
+                                color: 'black',
+                                fontWeight: '900',
+                                fontSize: '20px',
+                                width: '50px',
+                                outline: 'none',
+                                border: 'none'
+                            }}
                         />
                     </div>
                 </div>
             </header>
 
-            <div className="max-w-2xl mx-auto space-y-6">
+            <div style={{maxWidth: '700px', margin: '0 auto'}}>
 
-                {/* FORMULARIO DE OPERACIÓN */}
-                <section className="bg-[#121f27] p-6 rounded-[2.5rem] border-2 border-zinc-800 shadow-2xl">
-                    <h2 className="text-xs font-bold uppercase mb-4 text-zinc-400">Nueva Operación</h2>
+                {/* CAJA DE NUEVA OPERACIÓN */}
+                <section style={{
+                    backgroundColor: '#121f27',
+                    padding: '30px',
+                    borderRadius: '40px',
+                    border: '1px solid #374151',
+                    marginBottom: '30px'
+                }}>
+                    <h2 style={{
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        color: '#9ca3af',
+                        textTransform: 'uppercase',
+                        marginBottom: '20px'
+                    }}>Nueva Operación</h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold ml-2">BENEFICIARIO</label>
-                            <input
-                                type="text"
-                                value={beneficiario}
-                                onChange={(e) => setBeneficiario(e.target.value)}
-                                placeholder="NOMBRE COMPLETO"
-                                className="w-full bg-[#1c2c35] p-4 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500 font-bold"
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold ml-2">MONTO EN REALES</label>
-                            <input
-                                type="number"
-                                value={reales}
-                                onChange={(e) => setReales(e.target.value)}
-                                placeholder="R$ 0.00"
-                                className="w-full bg-[#1c2c35] p-4 rounded-2xl outline-none border-2 border-transparent focus:border-green-500 font-mono text-xl text-green-400"
-                            />
-                        </div>
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '20px', marginBottom: '20px'}}>
+                        <input
+                            type="text"
+                            value={beneficiario}
+                            onChange={(e) => setBeneficiario(e.target.value)}
+                            placeholder="NOMBRE DEL BENEFICIARIO"
+                            style={{
+                                backgroundColor: '#1c2c35',
+                                padding: '15px',
+                                borderRadius: '15px',
+                                border: 'none',
+                                outline: 'none',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px'
+                            }}
+                        />
+                        <input
+                            type="number"
+                            value={reales}
+                            onChange={(e) => setReales(e.target.value)}
+                            placeholder="MONTO R$ 0.00"
+                            style={{
+                                backgroundColor: '#1c2c35',
+                                padding: '15px',
+                                borderRadius: '15px',
+                                border: 'none',
+                                outline: 'none',
+                                color: '#4ade80',
+                                fontWeight: 'bold',
+                                fontSize: '20px',
+                                fontFamily: 'monospace'
+                            }}
+                        />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
                         <button
                             onClick={() => setMetodo('Transferencia')}
-                            className={`py-3 rounded-2xl font-bold text-[10px] border-2 transition-all ${metodo === 'Transferencia' ? 'bg-blue-700 border-white shadow-lg' : 'bg-[#1c2c35] border-zinc-700 text-zinc-500'}`}
+                            style={{
+                                padding: '12px',
+                                borderRadius: '50px',
+                                fontSize: '10px',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                border: metodo === 'Transferencia' ? '2px solid white' : '2px solid #374151',
+                                backgroundColor: metodo === 'Transferencia' ? '#1d4ed8' : '#1c2c35',
+                                color: 'white'
+                            }}
                         >TARJETA PRINCIPAL
                         </button>
                         <button
                             onClick={() => setMetodo('Efectivo')}
-                            className={`py-3 rounded-2xl font-bold text-[10px] border-2 transition-all ${metodo === 'Efectivo' ? 'bg-green-700 border-yellow-400 shadow-lg' : 'bg-[#1c2c35] border-zinc-700 text-zinc-500'}`}
+                            style={{
+                                padding: '12px',
+                                borderRadius: '50px',
+                                fontSize: '10px',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                border: metodo === 'Efectivo' ? '2px solid #facc15' : '2px solid #374151',
+                                backgroundColor: metodo === 'Efectivo' ? '#16a34a' : '#1c2c35',
+                                color: 'white'
+                            }}
                         >EFECTIVO EN MANO
                         </button>
                     </div>
@@ -132,7 +222,16 @@ export default function NexusPatriotico() {
                         <select
                             value={tarjeta}
                             onChange={(e) => setTarjeta(e.target.value)}
-                            className="w-full mb-6 bg-[#1c2c35] p-4 rounded-2xl outline-none border-2 border-zinc-700 font-bold text-xs"
+                            style={{
+                                width: '100%',
+                                backgroundColor: '#1c2c35',
+                                color: 'white',
+                                padding: '15px',
+                                borderRadius: '15px',
+                                marginBottom: '20px',
+                                border: 'none',
+                                fontWeight: 'bold'
+                            }}
                         >
                             <option value="Tarjeta Principal">TARJETA PRINCIPAL (CUBA)</option>
                             <option value="Tarjeta Auxiliar">TARJETA AUXILIAR</option>
@@ -142,71 +241,146 @@ export default function NexusPatriotico() {
 
                     <button
                         onClick={registrar}
-                        className="w-full bg-white text-black py-5 rounded-full font-black uppercase tracking-widest hover:bg-zinc-200 shadow-xl active:scale-95 transition-all"
+                        style={{
+                            width: '100%',
+                            backgroundColor: 'white',
+                            color: 'black',
+                            padding: '18px',
+                            borderRadius: '50px',
+                            fontWeight: '900',
+                            textTransform: 'uppercase',
+                            letterSpacing: '2px',
+                            border: 'none',
+                            cursor: 'pointer'
+                        }}
                     >
-                        REGISTRAR OPERACIÓN
+                        Registrar Operación
                     </button>
                 </section>
 
-                {/* TABLA CONTABLE */}
-                <section className="bg-[#121f27] rounded-3xl border-2 border-zinc-800 overflow-hidden shadow-2xl">
-                    <div className="p-4 bg-zinc-900/50 flex justify-between items-center border-b border-zinc-800">
-                        <h3 className="text-[10px] font-black uppercase">Totales Filtrados</h3>
+                {/* TABLA DE TOTALES */}
+                <section style={{
+                    backgroundColor: '#121f27',
+                    borderRadius: '30px',
+                    overflow: 'hidden',
+                    border: '1px solid #374151'
+                }}>
+                    <div style={{
+                        padding: '15px',
+                        backgroundColor: '#0f171d',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}>
+                        <h3 style={{fontSize: '10px', fontWeight: '900', textTransform: 'uppercase'}}>Historial de
+                            Pagos</h3>
                         <select
                             value={filtroTarjeta}
                             onChange={(e) => setFiltroTarjeta(e.target.value)}
-                            className="bg-transparent text-[10px] font-black text-blue-400 outline-none"
+                            style={{
+                                backgroundColor: 'transparent',
+                                color: '#60a5fa',
+                                fontSize: '10px',
+                                fontWeight: 'bold',
+                                border: 'none',
+                                outline: 'none'
+                            }}
                         >
-                            <option value="Todas">TODAS</option>
-                            <option value="Tarjeta Principal">TARJETA PRINCIPAL</option>
-                            <option value="Tarjeta Auxiliar">TARJETA AUXILIAR</option>
-                            <option value="Efectivo">EFECTIVO</option>
+                            <option value="Todas">TODAS LAS TARJETAS</option>
+                            <option value="Tarjeta Principal">SOLO PRINCIPAL</option>
+                            <option value="Efectivo">SOLO EFECTIVO</option>
                         </select>
                     </div>
-
-                    <table className="w-full text-left">
-                        <thead className="bg-[#1c2c35] text-[9px] font-black text-zinc-500 uppercase">
-                        <tr>
-                            <th className="p-4">Día</th>
-                            <th className="p-4">Beneficiario</th>
-                            <th className="p-4">Reales</th>
-                            <th className="p-4 text-right">Saldo MN</th>
-                        </tr>
-                        </thead>
-                        <tbody className="divide-y divide-zinc-800">
-                        {enviosFiltrados.map((e) => (
-                            <tr key={e.id} className="hover:bg-white/5 transition-colors">
-                                <td className="p-4 text-xs font-mono text-zinc-500">{e.dia}</td>
-                                <td className="p-4 text-[10px] font-bold">
-                                    {e.beneficiario}
-                                    <br/>
-                                    <span className="text-[8px] text-blue-500 font-black">
-                      {e.metodo === 'Efectivo' ? '💵 EFEC' : `💳 ${e.tarjetaOrigen?.split(' ')[1]}`}
-                    </span>
-                                </td>
-                                <td className="p-4 text-xs font-mono text-green-500 font-bold">R${e.reales.toFixed(2)}</td>
-                                <td className="p-4 text-right text-xs font-mono text-blue-400 font-black">${e.saldoMN.toLocaleString()}</td>
+                    <div style={{overflowX: 'auto'}}>
+                        <table style={{width: '100%', textAlign: 'left', borderCollapse: 'collapse'}}>
+                            <thead style={{
+                                backgroundColor: '#1c2c35',
+                                fontSize: '9px',
+                                color: '#9ca3af',
+                                textTransform: 'uppercase'
+                            }}>
+                            <tr>
+                                <th style={{padding: '15px'}}>Día</th>
+                                <th style={{padding: '15px'}}>Beneficiario</th>
+                                <th style={{padding: '15px'}}>Monto R$</th>
+                                <th style={{padding: '15px', textAlign: 'right'}}>Total MN</th>
                             </tr>
-                        ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            {enviosFiltrados.map((e) => (
+                                <tr key={e.id} style={{borderBottom: '1px solid #1f2937'}}>
+                                    <td style={{padding: '15px', fontSize: '12px', color: '#6b7280'}}>{e.dia}</td>
+                                    <td style={{padding: '15px', fontSize: '11px', fontWeight: 'bold'}}>
+                                        {e.beneficiario}<br/>
+                                        <span style={{
+                                            fontSize: '8px',
+                                            color: e.metodo === 'Efectivo' ? '#eab308' : '#3b82f6'
+                                        }}>
+                        {e.metodo === 'Efectivo' ? 'EFECTIVO' : e.tarjetaOrigen}
+                      </span>
+                                    </td>
+                                    <td style={{
+                                        padding: '15px',
+                                        fontSize: '12px',
+                                        color: '#4ade80',
+                                        fontWeight: 'bold'
+                                    }}>R${e.reales.toFixed(2)}</td>
+                                    <td style={{
+                                        padding: '15px',
+                                        fontSize: '14px',
+                                        color: '#3b82f6',
+                                        fontWeight: '900',
+                                        textAlign: 'right'
+                                    }}>${e.saldoMN.toLocaleString()}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </section>
 
-                {/* TOTALES EN GRANDE */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-green-900/20 border-2 border-green-600 p-6 rounded-[2rem]">
-                        <p className="text-[9px] font-black text-green-500 uppercase mb-1">Total Reales</p>
-                        <p className="text-2xl font-black text-white">R$ {enviosFiltrados.reduce((acc, curr) => acc + curr.reales, 0).toFixed(2)}</p>
+                {/* RESUMEN DE CAJA (LAS CÁPSULAS DE ABAJO) */}
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '20px'}}>
+                    <div style={{
+                        backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                        border: '2px solid #16a34a',
+                        padding: '20px',
+                        borderRadius: '30px',
+                        textAlign: 'center'
+                    }}>
+                        <p style={{fontSize: '9px', fontWeight: 'bold', color: '#16a34a', marginBottom: '5px'}}>TOTAL
+                            REALES</p>
+                        <p style={{
+                            fontSize: '22px',
+                            fontWeight: '900'
+                        }}>R$ {enviosFiltrados.reduce((acc, curr) => acc + curr.reales, 0).toFixed(2)}</p>
                     </div>
-                    <div className="bg-blue-900/20 border-2 border-blue-600 p-6 rounded-[2rem]">
-                        <p className="text-[9px] font-black text-blue-500 uppercase mb-1">Total CUP</p>
-                        <p className="text-2xl font-black text-white">$ {enviosFiltrados.reduce((acc, curr) => acc + curr.saldoMN, 0).toLocaleString()}</p>
+                    <div style={{
+                        backgroundColor: 'rgba(29, 78, 216, 0.1)',
+                        border: '2px solid #1d4ed8',
+                        padding: '20px',
+                        borderRadius: '30px',
+                        textAlign: 'center'
+                    }}>
+                        <p style={{fontSize: '9px', fontWeight: 'bold', color: '#3b82f6', marginBottom: '5px'}}>TOTAL
+                            CUP</p>
+                        <p style={{
+                            fontSize: '22px',
+                            fontWeight: '900'
+                        }}>$ {enviosFiltrados.reduce((acc, curr) => acc + curr.saldoMN, 0).toLocaleString()}</p>
                     </div>
                 </div>
 
             </div>
-            <p className="text-center mt-8 text-[9px] font-black text-zinc-700 tracking-[0.4em] uppercase">
-                Nexus Pro • Patria o Muerte
+            <p style={{
+                textAlign: 'center',
+                marginTop: '40px',
+                fontSize: '10px',
+                color: '#374151',
+                letterSpacing: '5px',
+                fontWeight: 'bold'
+            }}>
+                NEXUS PRO • PATRIA O MUERTE
             </p>
         </main>
     );
