@@ -11,62 +11,86 @@ interface Operacion {
     tipo: 'Directa' | 'Inversa';
 }
 
-export default function NexusAuditoriaV8() {
+export default function NexusPersonalizadoV9() {
     const [tasa, setTasa] = useState<number>(90);
     const [monto, setMonto] = useState<string>("");
     const [tipo, setTipo] = useState<'Directa' | 'Inversa'>('Directa');
-    const [tarjeta, setTarjeta] = useState("Tarjeta Principal");
     const [operaciones, setOperaciones] = useState<Operacion[]>([]);
+
+    // ESTADO PARA LAS TARJETAS PERSONALIZADAS
+    const [misTarjetas, setMisTarjetas] = useState<string[]>([]);
+    const [nuevaTarjeta, setNuevaTarjeta] = useState("");
+    const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState("");
+
     const [isLoaded, setIsLoaded] = useState(false);
 
-    const misTarjetas = ["Tarjeta Principal", "Tarjeta Auxiliar", "Tarjeta Cuba-MN", "Efectivo Brasil", "Efectivo Cuba"];
-
+    // Cargar todo al iniciar
     useEffect(() => {
-        const datos = localStorage.getItem('nexus_v8_auditoria');
-        if (datos) setOperaciones(JSON.parse(datos));
+        const opsGuardadas = localStorage.getItem('nexus_v9_ops');
+        const cardsGuardadas = localStorage.getItem('nexus_v9_cards');
+
+        if (opsGuardadas) setOperaciones(JSON.parse(opsGuardadas));
+        if (cardsGuardadas) {
+            const cards = JSON.parse(cardsGuardadas);
+            setMisTarjetas(cards);
+            if (cards.length > 0) setTarjetaSeleccionada(cards[0]);
+        }
         setIsLoaded(true);
     }, []);
 
+    // Guardar cambios automáticamente
     useEffect(() => {
-        if (isLoaded) localStorage.setItem('nexus_v8_auditoria', JSON.stringify(operaciones));
-    }, [operaciones, isLoaded]);
+        if (isLoaded) {
+            localStorage.setItem('nexus_v9_ops', JSON.stringify(operaciones));
+            localStorage.setItem('nexus_v9_cards', JSON.stringify(misTarjetas));
+        }
+    }, [operaciones, misTarjetas, isLoaded]);
 
-    const registrar = () => {
-        if (!monto) return;
+    const agregarTarjeta = () => {
+        if (!nuevaTarjeta) return;
+        const listaActualizada = [...misTarjetas, nuevaTarjeta.toUpperCase()];
+        setMisTarjetas(listaActualizada);
+        setTarjetaSeleccionada(nuevaTarjeta.toUpperCase());
+        setNuevaTarjeta("");
+    };
+
+    const eliminarTarjeta = (nombre: string) => {
+        if (confirm(`¿Eliminar la cuenta ${nombre}?`)) {
+            setMisTarjetas(misTarjetas.filter(t => t !== nombre));
+        }
+    };
+
+    const registrarOperacion = () => {
+        if (!monto || !tarjetaSeleccionada) return;
         const m = parseFloat(monto);
         const salida = tipo === 'Directa' ? m * tasa : m / tasa;
+
         const nueva: Operacion = {
             id: Date.now(),
-            dia: new Date().getDate().toString(),
+            dia: new Date().toLocaleDateString('es-ES', {day: '2-digit', month: '2-digit'}),
             montoEntrada: m,
             tasa: tasa,
             montoSalida: salida,
-            metodo: tarjeta,
+            metodo: tarjetaSeleccionada,
             tipo: tipo
         };
         setOperaciones([nueva, ...operaciones]);
         setMonto("");
     };
 
-    // CÁLCULO DE RESUMEN POR TARJETA
-    const obtenerResumen = (nombreTarjeta: string) => {
-        const ops = operaciones.filter(o => o.metodo === nombreTarjeta);
-        let totalR = 0;
-        let totalCUP = 0;
+    const obtenerResumen = (nombreT: string) => {
+        const ops = operaciones.filter(o => o.metodo === nombreT);
+        let r = 0, cup = 0;
         ops.forEach(o => {
             if (o.tipo === 'Directa') {
-                totalR += o.montoEntrada;
-                totalCUP += o.montoSalida;
+                r += o.montoEntrada;
+                cup += o.montoSalida;
             } else {
-                totalCUP += o.montoEntrada;
-                totalR += o.montoSalida;
+                cup += o.montoEntrada;
+                r += o.montoSalida;
             }
         });
-        return {totalR, totalCUP};
-    };
-
-    const limpiarTodo = () => {
-        if (confirm("¿Seguro que quieres borrar todo el historial?")) setOperaciones([]);
+        return {r, cup};
     };
 
     if (!isLoaded) return <div style={{backgroundColor: '#0b141a', minHeight: '100vh'}}/>;
@@ -84,193 +108,159 @@ export default function NexusAuditoriaV8() {
             <header style={{
                 backgroundColor: '#121f27',
                 padding: '15px',
-                borderRadius: '25px',
-                borderBottom: '5px solid #dc2626',
+                borderRadius: '20px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                maxWidth: '600px',
-                margin: '0 auto 20px auto'
+                marginBottom: '20px'
             }}>
                 <h1 style={{fontSize: '20px', fontWeight: '900', fontStyle: 'italic'}}>NEXUS<span
                     style={{color: '#dc2626'}}>PRO</span></h1>
                 <div style={{
                     backgroundColor: 'white',
-                    padding: '4px 10px',
+                    padding: '5px 10px',
                     borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px'
+                    color: 'black',
+                    fontWeight: 'bold'
                 }}>
-                    <span style={{color: 'black', fontWeight: 'bold', fontSize: '10px'}}>TASA:</span>
-                    <input type="number" value={tasa} onChange={(e) => setTasa(parseFloat(e.target.value))} style={{
-                        backgroundColor: 'transparent',
-                        color: 'black',
-                        fontWeight: '900',
-                        fontSize: '16px',
-                        width: '45px',
-                        border: 'none',
-                        outline: 'none'
-                    }}/>
+                    TASA: <input type="number" value={tasa} onChange={(e) => setTasa(parseFloat(e.target.value))}
+                                 style={{width: '40px', border: 'none', fontWeight: '900', outline: 'none'}}/>
                 </div>
             </header>
 
-            <div style={{maxWidth: '600px', margin: '0 auto'}}>
+            {/* GESTIÓN DE TARJETAS */}
+            <section style={{
+                backgroundColor: '#1c2c35',
+                padding: '15px',
+                borderRadius: '20px',
+                marginBottom: '20px',
+                border: '1px dashed #374151'
+            }}>
+                <p style={{fontSize: '10px', fontWeight: 'bold', color: '#facc15', marginBottom: '10px'}}>+ AGREGAR
+                    NUEVA CUENTA/TARJETA</p>
+                <div style={{display: 'flex', gap: '10px'}}>
+                    <input value={nuevaTarjeta} onChange={(e) => setNuevaTarjeta(e.target.value)}
+                           placeholder="NOMBRE (EJ. VISA LUIS)" style={{
+                        flex: 1,
+                        backgroundColor: '#0b141a',
+                        border: 'none',
+                        padding: '10px',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '12px'
+                    }}/>
+                    <button onClick={agregarTarjeta} style={{
+                        backgroundColor: '#16a34a',
+                        border: 'none',
+                        padding: '10px 15px',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontWeight: 'bold'
+                    }}>+
+                    </button>
+                </div>
+                <div style={{display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '10px'}}>
+                    {misTarjetas.map(t => (
+                        <span key={t} onClick={() => eliminarTarjeta(t)} style={{
+                            fontSize: '9px',
+                            backgroundColor: '#374151',
+                            padding: '4px 8px',
+                            borderRadius: '5px',
+                            cursor: 'pointer'
+                        }}>
+              {t} ✕
+            </span>
+                    ))}
+                </div>
+            </section>
 
-                {/* SELECTOR DE TIPO */}
+            {/* REGISTRO DE OPERACIÓN */}
+            <section style={{backgroundColor: '#121f27', padding: '20px', borderRadius: '25px', marginBottom: '20px'}}>
                 <div style={{display: 'flex', gap: '8px', marginBottom: '15px'}}>
                     <button onClick={() => setTipo('Directa')} style={{
                         flex: 1,
                         padding: '10px',
-                        borderRadius: '10px',
-                        fontWeight: 'bold',
+                        borderRadius: '8px',
                         fontSize: '10px',
+                        fontWeight: 'bold',
                         backgroundColor: tipo === 'Directa' ? '#1d4ed8' : '#1c2c35',
                         border: 'none',
                         color: 'white'
-                    }}>DIRECTA (R$ ➔ CUP)
+                    }}>DIRECTA
                     </button>
                     <button onClick={() => setTipo('Inversa')} style={{
                         flex: 1,
                         padding: '10px',
-                        borderRadius: '10px',
-                        fontWeight: 'bold',
+                        borderRadius: '8px',
                         fontSize: '10px',
+                        fontWeight: 'bold',
                         backgroundColor: tipo === 'Inversa' ? '#a21caf' : '#1c2c35',
                         border: 'none',
                         color: 'white'
-                    }}>INVERSA (CUP ➔ R$)
+                    }}>INVERSA
                     </button>
                 </div>
 
-                {/* REGISTRO */}
-                <section style={{
-                    backgroundColor: '#121f27',
+                <select value={tarjetaSeleccionada} onChange={(e) => setTarjetaSeleccionada(e.target.value)} style={{
+                    width: '100%',
+                    padding: '12px',
+                    borderRadius: '10px',
+                    backgroundColor: '#1c2c35',
+                    color: 'white',
+                    border: 'none',
+                    marginBottom: '10px'
+                }}>
+                    <option value="">-- SELECCIONA CUENTA --</option>
+                    {misTarjetas.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+
+                <input type="number" placeholder={tipo === 'Directa' ? "REALES (R$)" : "PESOS (CUP)"} value={monto}
+                       onChange={(e) => setMonto(e.target.value)} style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    backgroundColor: '#1c2c35',
                     padding: '15px',
-                    borderRadius: '25px',
-                    marginBottom: '20px',
-                    border: '1px solid #374151'
-                }}>
-                    <select value={tarjeta} onChange={(e) => setTarjeta(e.target.value)} style={{
-                        width: '100%',
-                        backgroundColor: '#1c2c35',
-                        color: 'white',
-                        padding: '12px',
-                        borderRadius: '10px',
-                        marginBottom: '10px',
-                        border: 'none'
-                    }}>
-                        {misTarjetas.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
-                    </select>
-                    <input type="number" placeholder={tipo === 'Directa' ? "R$" : "CUP"} value={monto}
-                           onChange={(e) => setMonto(e.target.value)} style={{
-                        width: '100%',
-                        boxSizing: 'border-box',
-                        backgroundColor: '#1c2c35',
-                        padding: '15px',
-                        borderRadius: '10px',
-                        border: 'none',
-                        color: tipo === 'Directa' ? '#4ade80' : '#f472b6',
-                        fontWeight: 'bold',
-                        fontSize: '24px',
-                        textAlign: 'center',
-                        marginBottom: '10px'
-                    }}/>
-                    <button onClick={registrar} style={{
-                        width: '100%',
-                        backgroundColor: 'white',
-                        color: 'black',
-                        padding: '15px',
-                        borderRadius: '50px',
-                        fontWeight: '900',
-                        cursor: 'pointer',
-                        border: 'none'
-                    }}>GUARDAR OPERACIÓN
-                    </button>
-                </section>
+                    borderRadius: '10px',
+                    border: 'none',
+                    color: tipo === 'Directa' ? '#4ade80' : '#f472b6',
+                    fontWeight: 'bold',
+                    fontSize: '22px',
+                    textAlign: 'center',
+                    marginBottom: '10px'
+                }}/>
 
-                {/* PANEL DE AUDITORÍA (LO NUEVO) */}
-                <h2 style={{
-                    fontSize: '10px',
+                <button onClick={registrarOperacion} style={{
+                    width: '100%',
+                    backgroundColor: 'white',
+                    color: 'black',
+                    padding: '15px',
+                    borderRadius: '50px',
                     fontWeight: '900',
-                    color: '#facc15',
-                    marginBottom: '10px',
-                    letterSpacing: '2px'
-                }}>SALDOS POR CUENTA</h2>
-                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '25px'}}>
-                    {misTarjetas.map(t => {
-                        const {totalR, totalCUP} = obtenerResumen(t);
-                        if (totalR === 0 && totalCUP === 0) return null;
-                        return (
-                            <div key={t} style={{
-                                backgroundColor: '#0f171d',
-                                padding: '12px',
-                                borderRadius: '15px',
-                                borderLeft: '4px solid #facc15'
-                            }}>
-                                <p style={{
-                                    fontSize: '8px',
-                                    color: '#9ca3af',
-                                    fontWeight: 'bold',
-                                    marginBottom: '5px'
-                                }}>{t.toUpperCase()}</p>
-                                <p style={{
-                                    fontSize: '11px',
-                                    color: '#4ade80',
-                                    fontWeight: 'bold'
-                                }}>R$ {totalR.toFixed(2)}</p>
-                                <p style={{
-                                    fontSize: '11px',
-                                    color: '#3b82f6',
-                                    fontWeight: 'bold'
-                                }}>$ {totalCUP.toLocaleString()}</p>
-                            </div>
-                        );
-                    })}
-                </div>
+                    border: 'none'
+                }}>GUARDAR OPERACIÓN
+                </button>
+            </section>
 
-                {/* HISTORIAL */}
-                <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '10px'}}>
-                    <h2 style={{fontSize: '10px', fontWeight: '900', color: '#9ca3af'}}>HISTORIAL RECIENTE</h2>
-                    <button onClick={limpiarTodo} style={{
-                        fontSize: '8px',
-                        color: '#dc2626',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer'
-                    }}>BORRAR TODO
-                    </button>
-                </div>
-                <section style={{
-                    backgroundColor: '#121f27',
-                    borderRadius: '20px',
-                    overflow: 'hidden',
-                    border: '1px solid #374151'
-                }}>
-                    <table style={{width: '100%', textAlign: 'left', borderCollapse: 'collapse'}}>
-                        <tbody>
-                        {operaciones.map((op) => (
-                            <tr key={op.id} style={{borderBottom: '1px solid #1f2937'}}>
-                                <td style={{padding: '12px', fontSize: '10px', color: '#6b7280'}}>{op.dia}</td>
-                                <td style={{padding: '12px', fontSize: '9px', fontWeight: 'bold'}}>
-                                    {op.metodo.toUpperCase()}<br/>
-                                    <span
-                                        style={{color: op.tipo === 'Inversa' ? '#f472b6' : '#3b82f6'}}>{op.tipo}</span>
-                                </td>
-                                <td style={{padding: '12px', fontSize: '11px', textAlign: 'right', fontWeight: 'bold'}}>
-                                    <span
-                                        style={{color: '#4ade80'}}>{op.tipo === 'Directa' ? `R$${op.montoEntrada}` : `R$${op.montoSalida.toFixed(2)}`}</span>
-                                    <br/>
-                                    <span
-                                        style={{color: '#3b82f6'}}>{op.tipo === 'Directa' ? `$${op.montoSalida.toLocaleString()}` : `$${op.montoEntrada.toLocaleString()}`}</span>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </section>
-
+            {/* RESUMEN POR CUENTA */}
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px'}}>
+                {misTarjetas.map(t => {
+                    const {r, cup} = obtenerResumen(t);
+                    if (r === 0 && cup === 0) return null;
+                    return (
+                        <div key={t} style={{
+                            backgroundColor: '#0f171d',
+                            padding: '12px',
+                            borderRadius: '15px',
+                            borderLeft: '3px solid #facc15'
+                        }}>
+                            <p style={{fontSize: '9px', fontWeight: 'bold', marginBottom: '4px'}}>{t}</p>
+                            <p style={{fontSize: '11px', color: '#4ade80'}}>R$ {r.toFixed(2)}</p>
+                            <p style={{fontSize: '11px', color: '#3b82f6'}}>$ {cup.toLocaleString()}</p>
+                        </div>
+                    );
+                })}
             </div>
+
         </main>
     );
 }
