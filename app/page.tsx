@@ -7,63 +7,45 @@ import ResumenSaldo from '@/components/ResumenSaldo'
 
 export default function Home() {
     return (
-        <main className="min-h-screen bg-[#F8FAFC] p-4 md:p-12 flex flex-col items-center relative overflow-hidden">
+        <main className="min-h-screen bg-[#F1F5F9] py-12 px-4 flex flex-col items-center">
+            <div className="w-full max-w-2xl">
 
-            {/* Fondo Decorativo Sutil (No oscuro) */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                <div
-                    className="absolute top-[-5%] right-[-5%] w-[30%] h-[30%] bg-blue-100 rounded-full blur-[100px]"></div>
-                <div
-                    className="absolute bottom-[-5%] left-[-5%] w-[30%] h-[30%] bg-red-50 rounded-full blur-[100px]"></div>
-            </div>
-
-            <div className="w-full max-w-xl z-10">
-                {/* Header Profesional y Claro */}
-                <div className="text-center mb-10">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-1">
-                        NEXUS <span className="text-[#CF142B]">R&DAY</span>
-                    </h1>
-                    <p className="text-slate-400 text-[9px] uppercase tracking-[0.4em] font-bold">
-                        Financial Management System
-                    </p>
+                {/* Header con personalidad */}
+                <div className="flex justify-between items-end mb-10 px-2">
+                    <div>
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tighter">
+                            NEXUS <span className="text-[#CF142B]">R&DAY</span>
+                        </h1>
+                        <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.3em]">Financial
+                            Intelligence</p>
+                    </div>
+                    <ExportarReporte/>
                 </div>
 
-                {/* Resumen de Saldo (Ahora con fondo blanco y sombras suaves) */}
+                {/* Dashboard de Saldo */}
                 <div className="mb-8">
                     <ResumenSaldo/>
                 </div>
 
-                {/* Contenedor del Formulario (Blanco puro con sombra elegante) */}
-                <div
-                    className="bg-white rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-slate-100 overflow-hidden mb-12">
+                {/* Formulario: Ahora es una "Card" blanca elevada */}
+                <section
+                    className="bg-white rounded-[40px] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden mb-12">
                     <AgregarMovimiento/>
-                </div>
+                </section>
 
-                {/* Historial (Limpio y con contraste) */}
-                <div className="w-full">
-                    <div className="flex items-center justify-between mb-6 px-2">
-                        <h2 className="text-slate-800 text-xs font-black uppercase tracking-widest">
-                            Actividad Reciente
-                        </h2>
-                        <div className="flex items-center gap-3">
-                            <ExportarReporte/>
-                            <div className="flex items-center gap-1.5 bg-blue-50 px-2 py-1 rounded-full">
-                                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
-                                <span
-                                    className="text-[9px] text-blue-600 font-bold uppercase tracking-tight">Live</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-[28px] p-2 shadow-sm border border-slate-100">
+                {/* Historial con títulos claros */}
+                <section>
+                    <h2 className="text-slate-800 text-sm font-black uppercase tracking-widest mb-6 px-4">
+                        Historial de Operaciones
+                    </h2>
+                    <div className="bg-white/50 backdrop-blur-sm rounded-[32px] p-2 border border-white">
                         <Historial/>
                     </div>
-                </div>
+                </section>
 
-                <footer className="mt-16 mb-8 text-center">
-                    <p className="text-slate-300 text-[9px] font-bold uppercase tracking-widest">
-                        &copy; 2026 Nexus R&Day • Secure Environment
-                    </p>
+                <footer
+                    className="mt-20 text-center opacity-30 text-[9px] font-bold uppercase tracking-[0.5em] text-slate-900">
+                    Nexus System v2.0 • 2026
                 </footer>
             </div>
         </main>
