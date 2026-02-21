@@ -8,13 +8,11 @@ export default function AgregarMovimiento() {
     const [monto, setMonto] = useState('')
     const [categoria, setCategoria] = useState('Gasto')
     const [cargando, setCargando] = useState(false)
-
-    // Estado para la alerta visual interna
     const [alerta, setAlerta] = useState<{ tipo: 'error' | 'success', texto: string } | null>(null)
 
     const mostrarAlerta = (texto: string, tipo: 'error' | 'success') => {
         setAlerta({texto, tipo})
-        setTimeout(() => setAlerta(null), 4000) // Desaparece tras 4 segundos
+        setTimeout(() => setAlerta(null), 4000)
     }
 
     const guardarMovimiento = async (e: React.FormEvent) => {
@@ -29,7 +27,6 @@ export default function AgregarMovimiento() {
         setCargando(true)
 
         try {
-            // 1. Lógica de Validación de Saldo (Solo para Gastos)
             if (categoria === 'Gasto') {
                 const {data: movimientos, error: errorFetch} = await supabase
                     .from('movimientos')
@@ -48,7 +45,6 @@ export default function AgregarMovimiento() {
                 }
             }
 
-            // 2. Inserción en Supabase
             const {error: errorInsert} = await supabase
                 .from('movimientos')
                 .insert([{
@@ -60,7 +56,6 @@ export default function AgregarMovimiento() {
 
             if (errorInsert) throw errorInsert
 
-            // Éxito
             mostrarAlerta('Transacción registrada con éxito', 'success')
             setDescripcion('')
             setMonto('')
@@ -73,82 +68,82 @@ export default function AgregarMovimiento() {
     }
 
     return (
-        <div className="p-8 relative">
-            {/* Banner de Alerta Visual */}
+        <div className="p-10 relative">
+            {/* Sistema de Alerta Flotante */}
             {alerta && (
                 <div
-                    className={`absolute top-4 left-8 right-8 p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300 z-20 ${
-                        alerta.tipo === 'error'
-                            ? 'bg-red-50 border border-red-100 text-red-600'
-                            : 'bg-emerald-50 border border-emerald-100 text-emerald-600'
+                    className={`absolute top-4 left-10 right-10 p-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-center shadow-lg animate-bounce z-20 ${
+                        alerta.tipo === 'error' ? 'bg-red-600 text-white' : 'bg-emerald-500 text-white'
                     }`}>
-                    <span className="text-sm">{alerta.tipo === 'error' ? '⚠️' : '✅'}</span>
                     {alerta.texto}
                 </div>
             )}
 
-            <div className="mb-6 mt-4">
-                <h3 className="text-slate-900 font-black text-xl uppercase tracking-tighter">
-                    Nueva Transacción <span className="text-[#CF142B]">.</span>
-                </h3>
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                    Nexus Cloud • Verificación de Fondos
-                </p>
-            </div>
+            <h3 className="text-slate-900 font-black text-xl mb-8 flex items-center gap-3">
+                <span className="w-1.5 h-8 bg-[#CF142B] rounded-full"></span>
+                NUEVA TRANSACCIÓN
+            </h3>
 
-            <form onSubmit={guardarMovimiento} className="space-y-4">
-                <div>
-                    <label
-                        className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Descripción</label>
+            <form onSubmit={guardarMovimiento} className="space-y-8">
+                {/* Campo Descripción */}
+                <div className="flex flex-col gap-2">
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">
+                        Descripción del Concepto
+                    </label>
                     <input
                         type="text"
                         value={descripcion}
                         onChange={(e) => setDescripcion(e.target.value)}
-                        className="w-full p-4 border border-slate-100 rounded-2xl text-black focus:ring-2 focus:ring-[#002A8F] outline-none transition bg-slate-50/50"
-                        placeholder="Ej: Suscripción Mensual"
+                        className="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl focus:bg-white focus:border-slate-900 outline-none transition-all text-slate-900 font-bold placeholder:text-slate-300 shadow-sm"
+                        placeholder="Ej. Combustible Corporativo"
                         required
                     />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Monto
-                            (USD)</label>
+                <div className="grid grid-cols-2 gap-6">
+                    {/* Campo Monto */}
+                    <div className="flex flex-col gap-2">
+                        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">
+                            Monto USD
+                        </label>
                         <input
                             type="number"
+                            step="0.01"
                             value={monto}
                             onChange={(e) => setMonto(e.target.value)}
-                            className="w-full p-4 border border-slate-100 rounded-2xl text-black focus:ring-2 focus:ring-[#002A8F] outline-none transition bg-slate-50/50"
+                            className="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl focus:bg-white focus:border-slate-900 outline-none transition-all text-slate-900 font-black text-lg shadow-sm"
                             placeholder="0.00"
-                            step="0.01"
                             required
                         />
                     </div>
 
-                    <div>
-                        <label
-                            className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Tipo</label>
+                    {/* Campo Tipo */}
+                    <div className="flex flex-col gap-2">
+                        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">
+                            Tipo
+                        </label>
                         <select
                             value={categoria}
                             onChange={(e) => setCategoria(e.target.value)}
-                            className="w-full p-4 border border-slate-100 rounded-2xl text-black focus:ring-2 focus:ring-[#002A8F] outline-none transition bg-white appearance-none cursor-pointer"
+                            className="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl focus:bg-white focus:border-slate-900 outline-none transition-all text-slate-900 font-black cursor-pointer shadow-sm appearance-none"
                         >
-                            <option value="Gasto">📉 Gasto</option>
-                            <option value="Ingreso">📈 Ingreso</option>
+                            <option value="Gasto">📉 GASTO</option>
+                            <option value="Ingreso">📈 INGRESO</option>
                         </select>
                     </div>
                 </div>
 
+                {/* Botón de Acción Principal */}
                 <button
                     type="submit"
                     disabled={cargando}
-                    className={`w-full mt-4 py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] text-white transition-all transform active:scale-95 shadow-xl ${
+                    className={`w-full py-6 rounded-2xl font-black text-xs uppercase tracking-[0.4em] transition-all duration-300 shadow-xl active:scale-[0.98] ${
                         cargando
-                            ? 'bg-slate-200 text-slate-400'
-                            : 'bg-gradient-to-r from-[#002A8F] to-[#CF142B] hover:opacity-90 hover:shadow-[#002A8F]/20'
+                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                            : 'bg-slate-900 text-white hover:bg-black hover:shadow-slate-300'
                     }`}
                 >
-                    {cargando ? 'Sincronizando...' : 'Ejecutar Movimiento'}
+                    {cargando ? 'PROCESANDO...' : 'EJECUTAR MOVIMIENTO'}
                 </button>
             </form>
         </div>
