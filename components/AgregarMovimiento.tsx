@@ -27,41 +27,45 @@ export default function AgregarMovimiento() {
         setCargando(true)
 
         try {
+            // 1. Validación de Saldo (Consultando tu tabla movimientos)
             if (categoria === 'Gasto') {
-                const {data: movimientos, error: errorFetch} = await supabase
+                const {data: movimientos} = await supabase
                     .from('movimientos')
                     .select('monto, categoria')
 
-                if (errorFetch) throw errorFetch
-
-                const saldoActual = movimientos.reduce((acc, mov) => {
-                    return mov.categoria === 'Ingreso' ? acc + mov.monto : acc - mov.monto
-                }, 0)
+                // Calculamos el saldo real basándonos en los datos de la DB
+                const saldoActual = movimientos?.reduce((acc, mov) => {
+                    return mov.categoria === 'Ingreso' ? acc + Number(mov.monto) : acc - Number(mov.monto)
+                }, 0) || 0
 
                 if (montoNumerico > saldoActual) {
-                    mostrarAlerta(`Saldo insuficiente. Tienes $${saldoActual.toLocaleString()}`, 'error')
+                    mostrarAlerta(`Saldo insuficiente: $${saldoActual.toLocaleString()}`, 'error')
                     setCargando(false)
                     return
                 }
             }
 
-            const {error: errorInsert} = await supabase
+            // 2. INSERCIÓN: Usando los nombres de columna de tu SQL
+            const {error} = await supabase
                 .from('movimientos')
                 .insert([{
                     descripcion: descripcion.trim(),
                     monto: montoNumerico,
-                    categoria,
-                    fecha: new Date().toISOString()
+                    categoria: categoria,
+                    // 'fecha' en tu SQL es DATE (YYYY-MM-DD)
+                    fecha: new Date().toISOString().split('T')[0]
                 }])
 
-            if (errorInsert) throw errorInsert
+            if (error) throw error
 
-            mostrarAlerta('Transacción registrada con éxito', 'success')
+            // Éxito: Limpiamos campos y avisamos al usuario
+            mostrarAlerta('Guardado en Nexus con éxito', 'success')
             setDescripcion('')
             setMonto('')
 
         } catch (error: any) {
-            mostrarAlerta(error.message, 'error')
+            console.error("Error detallado:", error)
+            mostrarAlerta(error.message || 'Error de conexión', 'error')
         } finally {
             setCargando(false)
         }
@@ -85,7 +89,6 @@ export default function AgregarMovimiento() {
             </h3>
 
             <form onSubmit={guardarMovimiento} className="space-y-8">
-                {/* Campo Descripción */}
                 <div className="flex flex-col gap-2">
                     <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">
                         Descripción del Concepto
@@ -101,7 +104,6 @@ export default function AgregarMovimiento() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
-                    {/* Campo Monto */}
                     <div className="flex flex-col gap-2">
                         <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">
                             Monto USD
@@ -117,7 +119,6 @@ export default function AgregarMovimiento() {
                         />
                     </div>
 
-                    {/* Campo Tipo */}
                     <div className="flex flex-col gap-2">
                         <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">
                             Tipo
@@ -133,14 +134,13 @@ export default function AgregarMovimiento() {
                     </div>
                 </div>
 
-                {/* Botón de Acción Principal */}
                 <button
                     type="submit"
                     disabled={cargando}
                     className={`w-full py-6 rounded-2xl font-black text-xs uppercase tracking-[0.4em] transition-all duration-300 shadow-xl active:scale-[0.98] ${
                         cargando
                             ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                            : 'bg-slate-900 text-white hover:bg-black hover:shadow-slate-300'
+                            : 'bg-slate-900 text-white hover:bg-black'
                     }`}
                 >
                     {cargando ? 'PROCESANDO...' : 'EJECUTAR MOVIMIENTO'}
