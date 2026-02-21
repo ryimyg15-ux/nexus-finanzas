@@ -10,46 +10,48 @@ export default function ExportarReporte() {
             .select('*')
             .order('fecha', {ascending: false})
 
-        if (error || !movimientos) return alert('No hay datos para exportar')
+        if (error || !movimientos || movimientos.length === 0) {
+            return alert('No hay datos para exportar')
+        }
 
-        const doc = jsPDF()
+        // EL FIX ESTÁ AQUÍ: Añadir "new"
+        const doc = new jsPDF()
 
         // Estilo del encabezado
         doc.setFontSize(20)
-        doc.setTextColor(0, 42, 143) // Tu azul corporativo #002A8F
-        doc.text('NEXUS R&DAY - FINANCIAL REPORT', 14, 22)
+        doc.setTextColor(0, 42, 143) // Azul Corporativo
+        doc.text('NEXUS R&DAY - REPORT', 14, 22)
 
         doc.setFontSize(10)
         doc.setTextColor(150)
-        doc.text(`Generado el: ${new Date().toLocaleString()}`, 14, 30)
+        doc.text(`Fecha: ${new Date().toLocaleString()}`, 14, 30)
 
-        // Tabla de movimientos
+        // Tabla
         autoTable(doc, {
             startY: 40,
-            head: [['Fecha', 'Descripción', 'Categoría', 'Monto (USD)']],
+            head: [['Fecha', 'Detalle', 'Tipo', 'Monto']],
             body: movimientos.map(m => [
                 new Date(m.fecha).toLocaleDateString(),
                 m.descripcion,
-                m.categoria.toUpperCase(),
+                m.categoria,
                 `$${m.monto.toLocaleString()}`
             ]),
-            headStyles: {fillStyle: 'f', fillColor: [207, 20, 43]}, // Tu rojo #CF142B
-            alternateRowStyles: {fillColor: [245, 245, 245]},
+            headStyles: {fillColor: [207, 20, 43]}, // Rojo Nexus
         })
 
-        doc.save(`Nexus_Reporte_${Date.now()}.pdf`)
+        doc.save(`Nexus_Finanzas.pdf`)
     }
 
     return (
         <button
             onClick={generarPDF}
-            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-blue-400 hover:bg-blue-500/10 transition-all"
+            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all"
         >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
                  strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
             </svg>
-            Exportar PDF
+            PDF
         </button>
     )
 }
